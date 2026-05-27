@@ -11,8 +11,8 @@ import { initSimulation, simulationTick } from './simulation/simulator';
 import type { SimulationConfig, SimulationState } from './types';
 
 const DEFAULT_CONFIG: SimulationConfig = {
-  startNodeId:       'STAND_1',
-  destinationNodeId: 'RWY07L_HOLD',
+  startNodeId:       'DOM_S1',
+  destinationNodeId: 'H07L',
   weather:           'clear',
   timeOfDay:         'morning',
   trafficLevel:      'low',
