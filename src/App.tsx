@@ -7,12 +7,14 @@ import ControlPanel from './components/ControlPanel';
 import StatusPanel from './components/StatusPanel';
 import ScenarioPanel from './components/ScenarioPanel';
 import HuongDanModal from './components/HuongDanModal';
-import { initSimulation, simulationTick } from './simulation/simulator';
+import { initSimulation, simulationTick, acceptRoute } from './simulation/simulator';
 import type { SimulationConfig, SimulationState } from './types';
 
 const DEFAULT_CONFIG: SimulationConfig = {
   startNodeId:       'DOM_S1',
   destinationNodeId: 'H07L',
+  callsign:          'VN001',
+  aircraftType:      'A321',
   weather:           'clear',
   timeOfDay:         'morning',
   trafficLevel:      'low',
@@ -99,6 +101,10 @@ export default function App() {
     setSimState(prev => ({ ...prev, isPaused: !prev.isPaused }));
   }, []);
 
+  const handleAcceptRoute = useCallback(() => {
+    setSimState(prev => acceptRoute(prev));
+  }, []);
+
   const handleReset = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
@@ -144,9 +150,11 @@ export default function App() {
           <ControlPanel
             config={config}
             onConfigChange={handleConfigChange}
+            onAcceptRoute={handleAcceptRoute}
             onStart={handleStart}
             onPause={handlePause}
             onReset={handleReset}
+            routeStatus={simState.routeStatus}
             isRunning={simState.isRunning}
             isPaused={simState.isPaused}
             canStart={!!simState.aircraft}

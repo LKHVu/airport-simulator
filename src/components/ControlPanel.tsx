@@ -7,9 +7,11 @@ import type { SimulationConfig } from '../types';
 interface Props {
   config: SimulationConfig;
   onConfigChange: (patch: Partial<SimulationConfig>) => void;
+  onAcceptRoute: () => void;
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
+  routeStatus: 'pending' | 'accepted';
   isRunning: boolean;
   isPaused: boolean;
   canStart: boolean;
@@ -18,9 +20,11 @@ interface Props {
 export default function ControlPanel({
   config,
   onConfigChange,
+  onAcceptRoute,
   onStart,
   onPause,
   onReset,
+  routeStatus,
   isRunning,
   isPaused,
   canStart,
@@ -28,6 +32,32 @@ export default function ControlPanel({
   return (
     <div className="flex flex-col gap-3 p-4 bg-gray-900 rounded-xl border border-gray-700 text-sm text-gray-200">
       <h2 className="text-base font-bold text-white tracking-wide">Điều Khiển Mô Phỏng</h2>
+
+      {/* Cấu hình tàu bay */}
+      <Section title="Cấu hình tàu bay">
+        <div className="flex flex-col gap-0.5">
+          <label className="text-xs text-gray-400">Số hiệu chuyến bay</label>
+          <input
+            type="text"
+            value={config.callsign}
+            onChange={e => onConfigChange({ callsign: e.target.value.toUpperCase() })}
+            maxLength={8}
+            className="bg-gray-800 border border-gray-700 text-gray-100 rounded px-2 py-1.5 text-xs font-mono uppercase"
+            placeholder="VN001"
+          />
+        </div>
+        <LabeledSelect
+          label="Loại tàu bay"
+          value={config.aircraftType}
+          onChange={v => onConfigChange({ aircraftType: v as SimulationConfig['aircraftType'] })}
+          options={[
+            { value: 'A321', label: 'Airbus A321 (Thân hẹp)' },
+            { value: 'B737', label: 'Boeing 737 (Thân hẹp)' },
+            { value: 'A350', label: 'Airbus A350 (Thân rộng)' },
+            { value: 'ATR72', label: 'ATR 72 (Turboprop)' },
+          ]}
+        />
+      </Section>
 
       {/* Tuyến đường */}
       <Section title="Tuyến đường">
@@ -131,37 +161,50 @@ export default function ControlPanel({
       </Section>
 
       {/* Nút điều khiển */}
-      <div className="flex gap-2 mt-1">
-        {!isRunning && !isPaused && (
+      <div className="flex flex-col gap-2 mt-1">
+        {/* Step 1: Accept route — shown when not yet running */}
+        {!isRunning && !isPaused && routeStatus === 'pending' && (
+          <button
+            onClick={onAcceptRoute}
+            disabled={!canStart}
+            className="w-full bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 rounded-lg transition text-sm"
+          >
+            ✓ Chấp nhận tuyến đường
+          </button>
+        )}
+
+        {/* Step 2: Start — shown only after route accepted */}
+        {!isRunning && !isPaused && routeStatus === 'accepted' && (
           <button
             onClick={onStart}
             disabled={!canStart}
-            className="flex-1 bg-green-600 hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 rounded-lg transition"
+            className="w-full bg-green-600 hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 rounded-lg transition text-sm"
           >
-            Bắt đầu
+            ▶ Bắt đầu lăn bánh
           </button>
         )}
+
         {isRunning && (
           <button
             onClick={onPause}
-            className="flex-1 bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2 rounded-lg transition"
+            className="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2 rounded-lg transition text-sm"
           >
-            Tạm dừng
+            ⏸ Tạm dừng
           </button>
         )}
         {isPaused && (
           <button
             onClick={onPause}
-            className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg transition"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg transition text-sm"
           >
-            Tiếp tục
+            ▶ Tiếp tục
           </button>
         )}
         <button
           onClick={onReset}
-          className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded-lg transition"
+          className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded-lg transition text-sm"
         >
-          Đặt lại
+          ↺ Đặt lại
         </button>
       </div>
     </div>

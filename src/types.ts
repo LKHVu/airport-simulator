@@ -28,6 +28,8 @@ export type WeatherCondition = 'clear' | 'rain' | 'fog' | 'thunderstorm';
 
 export type TimeOfDay = 'morning' | 'afternoon' | 'night';
 
+export type AircraftType = 'A321' | 'B737' | 'A350' | 'ATR72';
+
 export type IncidentType =
   | 'none'
   | 'blocked_taxiway'
@@ -78,6 +80,8 @@ export interface Aircraft {
 export interface SimulationConfig {
   startNodeId: string;
   destinationNodeId: string;
+  callsign: string;
+  aircraftType: AircraftType;
   weather: WeatherCondition;
   timeOfDay: TimeOfDay;
   trafficLevel: TrafficLevel;
@@ -92,6 +96,7 @@ export interface SimulationState {
   config: SimulationConfig;
   isRunning: boolean;
   isPaused: boolean;
+  routeStatus: 'pending' | 'accepted';
   elapsedSeconds: number;
   etaSeconds: number | null;
   warningMessage: string | null;

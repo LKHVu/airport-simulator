@@ -244,6 +244,7 @@ export function initSimulation(config: SimulationConfig): SimulationState {
       config,
       isRunning: false,
       isPaused: false,
+      routeStatus: 'pending',
       elapsedSeconds: 0,
       etaSeconds: null,
       warningMessage: 'Không tìm thấy tuyến đường hợp lệ giữa hai điểm đã chọn.',
@@ -254,7 +255,7 @@ export function initSimulation(config: SimulationConfig): SimulationState {
 
   const aircraft: Aircraft = {
     id: 'AC001',
-    callsign: 'VN001',
+    callsign: config.callsign,
     currentNodeId: config.startNodeId,
     targetNodeId: config.destinationNodeId,
     currentEdgeId: null,
@@ -273,10 +274,21 @@ export function initSimulation(config: SimulationConfig): SimulationState {
     config,
     isRunning: false,
     isPaused: false,
+    routeStatus: 'pending',
     elapsedSeconds: 0,
     etaSeconds: eta,
     warningMessage: null,
-    lightStates: computeLightStates(aircraft, blockedEdgeIds),
+    lightStates: {},
     blockedEdgeIds,
+  };
+}
+
+/** Activate lights after controller accepts the proposed route */
+export function acceptRoute(state: SimulationState): SimulationState {
+  if (!state.aircraft) return state;
+  return {
+    ...state,
+    routeStatus: 'accepted',
+    lightStates: computeLightStates(state.aircraft, state.blockedEdgeIds),
   };
 }

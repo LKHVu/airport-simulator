@@ -65,13 +65,20 @@ export default function StatusPanel({ state }: Props) {
       )}
 
       {!aircraft && !warningMessage && (
-        <div className="text-gray-500 text-xs italic">Cấu hình thông số và nhấn Bắt đầu.</div>
+        <div className="text-gray-500 text-xs italic">Cấu hình thông số và nhấn Chấp nhận tuyến đường.</div>
+      )}
+
+      {aircraft && state.routeStatus === 'pending' && (
+        <div className="bg-blue-900/50 border border-blue-600 text-blue-200 rounded-lg px-3 py-2 text-xs font-semibold">
+          Tuyến đường đã lập — chờ kiểm soát viên chấp nhận để kích hoạt đèn.
+        </div>
       )}
 
       {aircraft && (
         <>
           <StatusGrid items={[
             { label: 'Mã hiệu',        value: aircraft.callsign },
+            { label: 'Loại tàu bay',   value: config.aircraftType },
             { label: 'Trạng thái',     value: <StatusBadge status={aircraft.status} /> },
             { label: 'Tốc độ',         value: `${aircraft.speedKts.toFixed(1)} kts` },
             { label: 'Đoạn đường',     value: currentEdge ? currentEdge.id : '—' },
