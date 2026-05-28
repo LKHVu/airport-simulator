@@ -27,22 +27,25 @@ const TWY_LABELS = [
   { x: 540, y: 378, t: 'M1'  },
 ];
 
+// Taxiways/runways = DARK asphalt. Infield between them = LIGHT olive-gray.
+// This matches the reference: dark strips on a light open-ground background.
+const ASPHALT  = '#252e3c';
 const EDGE_STYLES: Record<string, { stroke: string; width: number }> = {
-  runway:  { stroke: '#606875', width: 30 },
-  taxiway: { stroke: '#374858', width: 11 },
-  apron:   { stroke: '#2e3e4e', width: 9  },
-  holding: { stroke: '#6d28d9', width: 9  },
+  runway:  { stroke: ASPHALT, width: 32 },
+  taxiway: { stroke: ASPHALT, width: 16 },
+  apron:   { stroke: ASPHALT, width: 12 },
+  holding: { stroke: ASPHALT, width: 12 },
 };
 
 const NODE_COLORS: Record<string, string> = {
-  gate:          '#3b82f6',
-  stand:         '#22c55e',
-  taxiway:       '#64748b',
-  intersection:  '#94a3b8',
+  gate:          '#c0a870',
+  stand:         '#b8a068',
+  taxiway:       '#a09060',
+  intersection:  '#a09060',
   holding_point: '#f59e0b',
   runway_entry:  '#ef4444',
   runway_exit:   '#f97316',
-  apron:         '#0ea5e9',
+  apron:         '#b8a870',
 };
 
 export default function AirportMap({ state, onNodeClick }: Props) {
@@ -60,7 +63,7 @@ export default function AirportMap({ state, onNodeClick }: Props) {
   ]);
 
   return (
-    <div className="relative w-full h-full bg-gray-950 rounded-xl overflow-hidden border border-gray-700">
+    <div className="relative w-full h-full bg-[#141820] rounded-xl overflow-hidden border border-[#2a3040]">
       {state.config.timeOfDay === 'night' && (
         <div className="absolute inset-0 bg-indigo-950/40 pointer-events-none z-10" />
       )}
@@ -99,16 +102,12 @@ export default function AirportMap({ state, onNodeClick }: Props) {
         `}</style>
 
         {/* ── Terrain base ─────────────────────────────────────────── */}
-        <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#0a110a" />
-        {/* Grass north */}
-        <rect x={0} y={0}   width={SVG_WIDTH} height={108} fill="#1a3820" />
-        {/* Grass south */}
-        <rect x={0} y={592} width={SVG_WIDTH} height={108} fill="#1a3820" />
-        {/* Infield (between runways) — darker than outfield */}
-        <rect x={0} y={158} width={SVG_WIDTH} height={374} fill="#0c1a0c" opacity={0.75} />
-
-        {/* Apron concrete pad — parallelogram following the ~27° M1 diagonal */}
-        <polygon points="390,470 700,317 724,372 414,517" fill="#1a2c38" opacity={0.88} />
+        <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#141820" />
+        {/* Dark outer terrain north/south */}
+        <rect x={0} y={0}   width={SVG_WIDTH} height={118} fill="#0e1318" />
+        <rect x={0} y={572} width={SVG_WIDTH} height={128} fill="#0e1318" />
+        {/* Infield — light sandy-gray open ground between the runways */}
+        <rect x={0} y={118} width={SVG_WIDTH} height={454} fill="#b8b0a0" />
 
         {/* ── Infrastructure buildings (behind edges) ───────────────── */}
         <HangarBuilding x={88} y={248} width={98} height={165} />
@@ -120,10 +119,8 @@ export default function AirportMap({ state, onNodeClick }: Props) {
         <ControlTower x={756} y={422} />
 
         {/* ── Runway surfaces ──────────────────────────────────────── */}
-        {/* RWY 07L / 25R */}
-        <rect x={68} y={116} width={1078} height={30} fill="#3d4855" rx={2} />
-        {/* RWY 07R / 25L */}
-        <rect x={68} y={545} width={1078} height={30} fill="#3d4855" rx={2} />
+        <rect x={68} y={118} width={1078} height={28} fill={ASPHALT} />
+        <rect x={68} y={548} width={1078} height={28} fill={ASPHALT} />
 
         {/* Runway edge lights */}
         <RunwayEdgeLights y={130} />
@@ -164,9 +161,9 @@ export default function AirportMap({ state, onNodeClick }: Props) {
           const style      = EDGE_STYLES[edge.type] ?? EDGE_STYLES.taxiway;
 
           let stroke = style.stroke;
-          if (lightState === 'green') stroke = '#14532d';
-          else if (lightState === 'red')  stroke = '#7f1d1d';
-          else if (isOnRoute)             stroke = '#365314';
+          if (lightState === 'green') stroke = '#1a5e30';
+          else if (lightState === 'red')  stroke = '#6a1414';
+          else if (isOnRoute)             stroke = '#1e3a5c';
 
           return (
             <g key={edge.id}>
@@ -175,17 +172,15 @@ export default function AirportMap({ state, onNodeClick }: Props) {
                 x2={toNode.x}   y2={toNode.y}
                 stroke={stroke}
                 strokeWidth={style.width}
-                strokeLinecap="round"
-                opacity={edge.status === 'closed' ? 0.3 : 1}
+                strokeLinecap="butt"
+                opacity={edge.status === 'closed' ? 0.35 : 1}
               />
-              {/* Yellow centerline paint on unlit taxiway/apron edges */}
+              {/* Yellow centerline — dots on taxiways, dashes on apron */}
               {(edge.type === 'taxiway' || edge.type === 'apron') &&
                lightState === 'off' && !isOnRoute && (
-                <line
+                <CenterlineDots
                   x1={fromNode.x} y1={fromNode.y}
                   x2={toNode.x}   y2={toNode.y}
-                  stroke="#a16207" strokeWidth={1.5} strokeDasharray="10 8"
-                  opacity={0.55}
                 />
               )}
               {lightState === 'green' && (
@@ -207,7 +202,7 @@ export default function AirportMap({ state, onNodeClick }: Props) {
         {/* ── Taxiway name labels (TSN designations) ───────────────── */}
         {TWY_LABELS.map(({ x, y, t }) => (
           <text key={`${x}-${t}`} x={x} y={y}
-            fill="#4a7090" fontSize={9} fontWeight="bold" textAnchor="middle" opacity={0.75}>
+            fill="#6a6050" fontSize={9} fontWeight="bold" textAnchor="middle" opacity={0.85}>
             {t}
           </text>
         ))}
@@ -230,14 +225,21 @@ export default function AirportMap({ state, onNodeClick }: Props) {
                 <>
                   <circle
                     cx={node.x} cy={node.y}
-                    r={isStart || isDest ? 10 : node.type === 'stand' ? 7 : 5}
-                    fill={isStart ? '#f59e0b' : isDest ? '#22c55e' : color}
-                    stroke={isStart || isDest ? '#fff' : '#0a110a'}
-                    strokeWidth={isStart || isDest ? 2 : 1}
+                    r={isStart || isDest ? 9 : node.type === 'stand' ? 4 : 3}
+                    fill={isStart ? '#e8920a' : isDest ? '#1aaa52' : color}
+                    stroke={isStart || isDest ? '#fff' : ASPHALT}
+                    strokeWidth={isStart || isDest ? 2 : 0.5}
+                    opacity={isStart || isDest ? 1 : 0.55}
                   />
-                  {(node.type === 'stand' || node.type === 'gate' || isStart || isDest) && node.label && (
+                  {(isStart || isDest) && node.label && (
                     <text x={node.x + 12} y={node.y + 4}
-                      fill="#e2e8f0" fontSize={10} fontWeight="bold">
+                      fill="#f1f5f9" fontSize={10} fontWeight="bold">
+                      {node.label}
+                    </text>
+                  )}
+                  {!isStart && !isDest && (node.type === 'stand' || node.type === 'gate') && node.label && (
+                    <text x={node.x + 7} y={node.y + 3}
+                      fill="#8899aa" fontSize={8} opacity={0.7}>
                       {node.label}
                     </text>
                   )}
@@ -340,6 +342,26 @@ function FixedDistanceMarkers({ x, y, dir }: { x: number; y: number; dir: number
   );
 }
 
+function CenterlineDots({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const pixelLen = Math.sqrt(dx * dx + dy * dy);
+  const count = Math.max(2, Math.round(pixelLen / 26));
+  return (
+    <>
+      {Array.from({ length: count - 1 }, (_, i) => {
+        const t = (i + 1) / count;
+        return (
+          <circle key={i}
+            cx={x1 + dx * t} cy={y1 + dy * t}
+            r={2.2} fill="#c8a020" opacity={0.75}
+          />
+        );
+      })}
+    </>
+  );
+}
+
 function GuidanceLights({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
   const dx = x2 - x1;
   const dy = y2 - y1;
@@ -380,13 +402,13 @@ function StopBar({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: n
 
 function ParkedAircraft({ x, y, heading }: { x: number; y: number; heading: number }) {
   return (
-    <g transform={`translate(${x},${y}) rotate(${heading})`} opacity={0.65}>
+    <g transform={`translate(${x},${y}) rotate(${heading})`} opacity={0.75}>
       {/* Fuselage */}
-      <ellipse cx={0} cy={0} rx={2.5} ry={11} fill="#9db8cc" />
+      <ellipse cx={0} cy={0} rx={2.5} ry={11} fill="#dde4ec" />
       {/* Main wings */}
-      <polygon points="0,-1 13,6 8,8 0,5 -8,8 -13,6" fill="#8aaabf" />
+      <polygon points="0,-1 13,6 8,8 0,5 -8,8 -13,6" fill="#c8d4e0" />
       {/* Tailplane */}
-      <polygon points="0,8 5,12 0,10 -5,12" fill="#8aaabf" />
+      <polygon points="0,8 5,12 0,10 -5,12" fill="#c8d4e0" />
     </g>
   );
 }
@@ -414,15 +436,20 @@ function TerminalBuilding({ x, y, width, height, label, sublabel, rotate = 0 }: 
   const cy = y + height / 2;
   return (
     <g transform={rotate ? `rotate(${rotate}, ${cx}, ${cy})` : undefined}>
-      <rect x={x + 4} y={y + 4} width={width} height={height} fill="#000" opacity={0.3} rx={3} />
+      <rect x={x + 4} y={y + 4} width={width} height={height} fill="#000" opacity={0.25} rx={3} />
       <rect x={x} y={y} width={width} height={height}
-        fill="#172554" stroke="#1d4ed8" strokeWidth={1} rx={3} opacity={0.88} />
-      <rect x={x + 6} y={y + 8}           width={width - 12} height={7} fill="#1e40af" opacity={0.45} />
-      <rect x={x + 6} y={y + height - 15} width={width - 12} height={7} fill="#1e40af" opacity={0.45} />
-      <text x={cx} y={cy - 5}
-        fill="#93c5fd" fontSize={9} fontWeight="bold" textAnchor="middle">{label}</text>
-      <text x={cx} y={cy + 8}
-        fill="#60a5fa" fontSize={8} textAnchor="middle">{sublabel}</text>
+        fill="#c4b99a" stroke="#a09278" strokeWidth={1} rx={3} opacity={0.95} />
+      {/* Gate canopy strips */}
+      <rect x={x + 6} y={y + 6}           width={width - 12} height={6} fill="#b0a586" opacity={0.6} />
+      <rect x={x + 6} y={y + height - 12} width={width - 12} height={6} fill="#b0a586" opacity={0.6} />
+      {/* Gate dots */}
+      {Array.from({ length: Math.floor((width - 20) / 18) }, (_, i) => (
+        <circle key={i} cx={x + 16 + i * 18} cy={cy} r={2.5} fill="#7a6e58" opacity={0.7} />
+      ))}
+      <text x={cx} y={cy - 6}
+        fill="#2e2318" fontSize={9} fontWeight="bold" textAnchor="middle">{label}</text>
+      <text x={cx} y={cy + 7}
+        fill="#4a3a28" fontSize={8} textAnchor="middle">{sublabel}</text>
     </g>
   );
 }
@@ -433,15 +460,15 @@ function HangarBuilding({ x, y, width, height }: {
   const dw = width - 16;
   return (
     <g>
-      <rect x={x + 3} y={y + 3} width={width} height={height} fill="#000" opacity={0.28} rx={2} />
+      <rect x={x + 3} y={y + 3} width={width} height={height} fill="#000" opacity={0.25} rx={2} />
       <rect x={x} y={y} width={width} height={height}
-        fill="#1a2e1a" stroke="#374151" strokeWidth={1} rx={2} opacity={0.9} />
+        fill="#888e98" stroke="#6a7080" strokeWidth={1} rx={2} opacity={0.85} />
       <rect x={x + 8} y={y + height - 48} width={dw} height={44}
-        fill="#111827" stroke="#374151" strokeWidth={0.5} />
-      <line x1={x + 8 + dw / 3}     y1={y + height - 48} x2={x + 8 + dw / 3}     y2={y + height} stroke="#374151" strokeWidth={0.5} />
-      <line x1={x + 8 + 2 * dw / 3} y1={y + height - 48} x2={x + 8 + 2 * dw / 3} y2={y + height} stroke="#374151" strokeWidth={0.5} />
+        fill="#6e7480" stroke="#5a6070" strokeWidth={0.5} />
+      <line x1={x + 8 + dw / 3}     y1={y + height - 48} x2={x + 8 + dw / 3}     y2={y + height} stroke="#5a6070" strokeWidth={0.8} />
+      <line x1={x + 8 + 2 * dw / 3} y1={y + height - 48} x2={x + 8 + 2 * dw / 3} y2={y + height} stroke="#5a6070" strokeWidth={0.8} />
       <text x={x + width / 2} y={y + height / 2 - 8}
-        fill="#4b5563" fontSize={8} fontWeight="bold" textAnchor="middle">HANGAR</text>
+        fill="#2e3038" fontSize={8} fontWeight="bold" textAnchor="middle">HANGAR</text>
     </g>
   );
 }
@@ -449,11 +476,11 @@ function HangarBuilding({ x, y, width, height }: {
 function ControlTower({ x, y }: { x: number; y: number }) {
   return (
     <g>
-      <rect x={x - 3} y={y - 6}   width={6}  height={14} fill="#2d3748" />
-      <rect x={x - 9} y={y + 8}   width={18} height={8}  fill="#1f2937" stroke="#374151" strokeWidth={1} rx={1} />
-      <rect x={x - 10} y={y - 12} width={20} height={11} fill="#1e3a5f" stroke="#3b82f6" strokeWidth={1.2} rx={2} />
-      <rect x={x - 8}  y={y - 11} width={16} height={8}  fill="#1d4ed8" opacity={0.5} rx={1} />
-      <text x={x} y={y + 26} fill="#6b7280" fontSize={8} textAnchor="middle">TWR</text>
+      <rect x={x - 3} y={y - 6}   width={6}  height={14} fill="#4a5260" />
+      <rect x={x - 9} y={y + 8}   width={18} height={8}  fill="#3a4252" stroke="#525e70" strokeWidth={1} rx={1} />
+      <rect x={x - 10} y={y - 12} width={20} height={11} fill="#c4b99a" stroke="#a09278" strokeWidth={1.2} rx={2} />
+      <rect x={x - 8}  y={y - 11} width={16} height={8}  fill="#b0a586" opacity={0.6} rx={1} />
+      <text x={x} y={y + 26} fill="#6a7888" fontSize={8} textAnchor="middle">TWR</text>
     </g>
   );
 }
@@ -467,7 +494,7 @@ function MapLegend() {
   ];
   return (
     <g transform="translate(16, 622)">
-      <rect x={-6} y={-14} width={970} height={24} fill="#0a110a" opacity={0.8} rx={3} />
+      <rect x={-6} y={-14} width={970} height={24} fill="#141820" opacity={0.95} rx={3} />
       {items.map((item, i) => (
         <g key={item.label} transform={`translate(${i * 238}, 0)`}>
           <circle cx={6} cy={-3} r={5} fill={item.color} />

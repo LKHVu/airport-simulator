@@ -30,7 +30,7 @@ export default function ControlPanel({
   canStart,
 }: Props) {
   return (
-    <div className="flex flex-col gap-3 p-4 bg-gray-900 rounded-xl border border-gray-700 text-sm text-gray-200">
+    <div className="flex flex-col gap-3 p-4 bg-[#111620] rounded-xl border border-[#1e2838] text-sm text-gray-200">
       <h2 className="text-base font-bold text-white tracking-wide">Điều Khiển Mô Phỏng</h2>
 
       {/* Cấu hình tàu bay */}
@@ -42,7 +42,7 @@ export default function ControlPanel({
             value={config.callsign}
             onChange={e => onConfigChange({ callsign: e.target.value.toUpperCase() })}
             maxLength={8}
-            className="bg-gray-800 border border-gray-700 text-gray-100 rounded px-2 py-1.5 text-xs font-mono uppercase"
+            className="bg-[#0d1318] border border-[#1e2838] text-gray-100 rounded px-2 py-1.5 text-xs font-mono uppercase"
             placeholder="VN001"
           />
         </div>
@@ -216,7 +216,7 @@ export default function ControlPanel({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-xs uppercase tracking-widest text-gray-500 border-b border-gray-800 pb-1">{title}</div>
+      <div className="text-xs uppercase tracking-widest text-[#4a5a6e] border-b border-[#1e2838] pb-1">{title}</div>
       {children}
     </div>
   );
@@ -239,7 +239,7 @@ function LabeledSelect({
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="bg-gray-800 border border-gray-700 text-gray-100 rounded px-2 py-1.5 text-xs"
+        className="bg-[#0d1318] border border-[#1e2838] text-gray-100 rounded px-2 py-1.5 text-xs"
       >
         {options.map(o => (
           <option key={o.value} value={o.value}>{o.label}</option>

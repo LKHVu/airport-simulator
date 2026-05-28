@@ -113,14 +113,14 @@ export default function App() {
   }, [config]);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
+    <div className="min-h-screen bg-[#0c0f12] text-gray-100 flex flex-col">
       {/* Cảnh báo giáo dục */}
-      <header className="bg-amber-950 border-b border-amber-700 text-amber-200 text-center py-1.5 text-xs font-semibold tracking-wide px-4">
+      <header className="bg-amber-950 border-b border-amber-800 text-amber-200 text-center py-1.5 text-xs font-semibold tracking-wide px-4">
         CHỈ DÙNG CHO MỤC ĐÍCH GIÁO DỤC — KHÔNG SỬ DỤNG TRONG HOẠT ĐỘNG HÀNG KHÔNG THỰC TẾ
       </header>
 
       {/* Thanh tiêu đề */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-800">
+      <div className="flex items-center gap-2 px-3 py-2 bg-[#111620] border-b border-[#1e2838]">
         <h1 className="text-base font-bold text-white">
           Mô Phỏng Di Chuyển Mặt Đất Sân Bay
         </h1>

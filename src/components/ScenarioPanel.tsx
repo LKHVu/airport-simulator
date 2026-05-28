@@ -44,16 +44,16 @@ export default function ScenarioPanel({ state }: Props) {
   const blockedCount = state.blockedEdgeIds.size;
 
   return (
-    <div className="flex flex-col gap-3 p-4 bg-gray-900 rounded-xl border border-gray-700 text-sm text-gray-200">
+    <div className="flex flex-col gap-3 p-4 bg-[#111620] rounded-xl border border-[#1e2838] text-sm text-gray-200">
       <h2 className="text-base font-bold text-white tracking-wide">Thông Tin Tình Huống</h2>
 
-      <div className="bg-gray-800 rounded-lg p-3">
+      <div className="bg-[#0d1318] rounded-lg p-3">
         <div className={`font-semibold ${info.color} mb-1`}>{info.title}</div>
         <div className="text-xs text-gray-400">{info.desc}</div>
       </div>
 
-      <div className="border-t border-gray-800 pt-2">
-        <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Hệ thống đèn dẫn đường</div>
+      <div className="border-t border-[#1e2838] pt-2">
+        <div className="text-xs uppercase tracking-widest text-[#4a5a6e] mb-2">Hệ thống đèn dẫn đường</div>
         <div className="flex flex-col gap-1.5 text-xs">
           <LightExplainer color="bg-green-500" label="Xanh lá" desc="Đường đã được giải phóng — máy bay được phép lăn bánh trên đoạn này." />
           <LightExplainer color="bg-red-500"   label="Đỏ"      desc="Vạch dừng hoặc đoạn bị chặn — không được vượt qua." />
@@ -61,7 +61,7 @@ export default function ScenarioPanel({ state }: Props) {
         </div>
       </div>
 
-      <div className="border-t border-gray-800 pt-2 text-xs text-gray-400">
+      <div className="border-t border-[#1e2838] pt-2 text-xs text-gray-500">
         <div>Đoạn bị chặn: <span className="text-red-400 font-mono">{blockedCount}</span></div>
         <div>
           Tự động tìm đường:{' '}
@@ -71,7 +71,7 @@ export default function ScenarioPanel({ state }: Props) {
         </div>
       </div>
 
-      <div className="text-xs text-gray-600 border-t border-gray-800 pt-2">
+      <div className="text-xs text-gray-600 border-t border-[#1e2838] pt-2">
         Trong thực tế, hệ thống "Đèn Dẫn Đường Xanh" (SMGCS) hướng dẫn phi công dọc theo lộ trình lăn bánh đã được giải phóng bằng đèn nhúng trong đường băng/đường lăn. Vạch dừng ngăn ngừa xâm phạm đường băng.
       </div>
     </div>

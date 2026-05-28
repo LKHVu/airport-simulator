@@ -55,7 +55,7 @@ export default function StatusPanel({ state }: Props) {
   }) ?? [];
 
   return (
-    <div className="flex flex-col gap-3 p-4 bg-gray-900 rounded-xl border border-gray-700 text-sm text-gray-200">
+    <div className="flex flex-col gap-3 p-4 bg-[#111620] rounded-xl border border-[#1e2838] text-sm text-gray-200">
       <h2 className="text-base font-bold text-white tracking-wide">Trạng Thái Trực Tiếp</h2>
 
       {warningMessage && (
@@ -86,8 +86,8 @@ export default function StatusPanel({ state }: Props) {
             { label: 'Thời gian còn',  value: etaSeconds != null ? formatTime(etaSeconds) : '—' },
           ]} />
 
-          <div className="border-t border-gray-800 pt-2">
-            <div className="text-xs uppercase tracking-widest text-gray-500 mb-1">Môi trường</div>
+          <div className="border-t border-[#1e2838] pt-2">
+            <div className="text-xs uppercase tracking-widest text-[#4a5a6e] mb-1">Môi trường</div>
             <StatusGrid items={[
               { label: 'Thời tiết',   value: <WeatherBadge weather={config.weather} /> },
               { label: 'Thời điểm',  value: TIME_VI[config.timeOfDay] ?? config.timeOfDay },
@@ -96,8 +96,8 @@ export default function StatusPanel({ state }: Props) {
             ]} />
           </div>
 
-          <div className="border-t border-gray-800 pt-2">
-            <div className="text-xs uppercase tracking-widest text-gray-500 mb-1">
+          <div className="border-t border-[#1e2838] pt-2">
+            <div className="text-xs uppercase tracking-widest text-[#4a5a6e] mb-1">
               Lộ trình ({routeEdgeIds.length} đoạn)
             </div>
             <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
@@ -108,8 +108,8 @@ export default function StatusPanel({ state }: Props) {
                       i === aircraft.routeEdgeIndex
                         ? 'bg-green-700 text-white'
                         : i < aircraft.routeEdgeIndex
-                        ? 'bg-gray-800 text-gray-500'
-                        : 'bg-gray-700 text-gray-200'
+                        ? 'bg-[#0d1318] text-gray-500'
+                        : 'bg-[#1a2230] text-gray-300'
                     }`}
                   >
                     {label}

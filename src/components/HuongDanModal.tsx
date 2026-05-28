@@ -22,7 +22,7 @@ export default function HuongDanModal({ onClose }: Props) {
     >
       {/* Hộp nội dung — ngăn sự kiện click lan ra overlay */}
       <div
-        className="relative bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
+        className="relative bg-[#111620] border border-[#1e2838] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
