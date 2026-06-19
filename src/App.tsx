@@ -31,6 +31,8 @@ export default function App() {
   const [config, setConfig] = useState<SimulationConfig>(DEFAULT_CONFIG);
   const [simState, setSimState] = useState<SimulationState>(() => initSimulation(DEFAULT_CONFIG));
   const [showGuide, setShowGuide] = useState(false);
+  const [showPinkOverlay, setShowPinkOverlay] = useState(false);
+  const [pinkOpacity, setPinkOpacity] = useState(0.45);
   const rafRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
 
@@ -128,10 +130,31 @@ export default function App() {
           · Sơ đồ đơn giản hóa lấy cảm hứng từ Sân bay Tân Sơn Nhất
         </span>
 
+        {/* Pink overlay toggle (development calibration tool) */}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setShowPinkOverlay(v => !v)}
+            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
+              showPinkOverlay ? 'bg-pink-600 hover:bg-pink-500' : 'bg-gray-700 hover:bg-gray-600'
+            } text-white`}
+          >
+            Pink
+          </button>
+          {showPinkOverlay && (
+            <input
+              type="range" min={0.1} max={0.85} step={0.05}
+              value={pinkOpacity}
+              onChange={e => setPinkOpacity(Number(e.target.value))}
+              className="w-20 accent-pink-500"
+              title={`Opacity: ${Math.round(pinkOpacity * 100)}%`}
+            />
+          )}
+        </div>
+
         {/* Nút Hướng dẫn — đặt cuối thanh tiêu đề */}
         <button
           onClick={() => setShowGuide(true)}
-          className="ml-auto flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+          className="flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition"
         >
           <span className="text-sm leading-none">?</span>
           Hướng dẫn sử dụng
@@ -142,7 +165,7 @@ export default function App() {
       <div className="flex flex-1 gap-3 p-3 overflow-hidden min-h-0">
         {/* Bản đồ sân bay */}
         <div className="flex-1 min-w-0 min-h-0">
-          <AirportMap state={simState} />
+          <AirportMap state={simState} showPinkOverlay={showPinkOverlay} pinkOpacity={pinkOpacity} />
         </div>
 
         {/* Thanh bên phải */}

@@ -4,13 +4,18 @@ import { airportGraph, SVG_WIDTH, SVG_HEIGHT } from '../data/airportGraph';
 import { routeToEdges } from '../simulation/pathfinding';
 import type { SimulationState } from '../types';
 
+// Reference image calibration: ref(0,0)→SVG(-192,-665), ref(2048,1430)→SVG(1308,1417)
+const PINK_X = -192, PINK_Y = -665, PINK_W = 1500, PINK_H = 2082;
+
 interface Props {
   state: SimulationState;
   onNodeClick?: (nodeId: string) => void;
+  showPinkOverlay?: boolean;
+  pinkOpacity?: number;
 }
 
 const STAND_HEADINGS: Record<string, number> = {
-  DOM_S1: 153, DOM_S2: 153, DOM_S3: 153, DOM_S4: 153, DOM_S5: 153,
+  DOM_S1: 90, DOM_S2: 90, DOM_S3: 90, DOM_S4: 90, DOM_S5: 90,
   INTL_S1: 90, INTL_S2: 90, INTL_S3: 90, INTL_S4: 90,
 };
 
@@ -25,7 +30,7 @@ const EDGE_STYLES: Record<string, { stroke: string; width: number }> = {
   holding: { stroke: ASPHALT, width: 0  },
 };
 
-export default function AirportMap({ state, onNodeClick }: Props) {
+export default function AirportMap({ state, onNodeClick, showPinkOverlay, pinkOpacity = 0.45 }: Props) {
   const { aircraft, lightStates } = state;
 
   const aircraftPos = getAircraftPosition(state);
@@ -93,11 +98,26 @@ export default function AirportMap({ state, onNodeClick }: Props) {
         `}</style>
 
         {/* ── Layer 1: reference image base — 1309×875 at SVG 1200×860 = perfect 1:1 CMP mapping */}
-        <image href="/ref_full.png" x={0} y={0} width={1200} height={860} preserveAspectRatio="none" style={{imageRendering:'pixelated'}} />
+        <image href="/ref_full.png" x={0} y={0} width={1200} height={860} preserveAspectRatio="none" />
+
+        {/* ── Pink path overlay (allowed_paths.jpg, toggled via showPinkOverlay prop) ── */}
+        {showPinkOverlay && (
+          <image
+            href="/allowed_paths.jpg"
+            x={PINK_X} y={PINK_Y} width={PINK_W} height={PINK_H}
+            preserveAspectRatio="none"
+            opacity={pinkOpacity}
+          />
+        )}
 
         {/* Runway edge lights */}
         <RunwayEdgeLights y={73}  xStart={22}  xEnd={1118} animate={isNight} />
         <RunwayEdgeLights y={156} xStart={275} xEnd={1175} animate={isNight} />
+
+        {/* ── Layer 2: planned route preview (remaining path, dashed blue) ── */}
+        {aircraft && aircraft.status !== 'arrived' && aircraft.assignedRoute.length > 1 && (
+          <RoutePlanLine route={aircraft.assignedRoute.slice(aircraft.routeEdgeIndex)} />
+        )}
 
         {/* ── Layer 4: parked aircraft at stands ────────────────────────── */}
         {Object.entries(STAND_HEADINGS).map(([id, heading]) => {
@@ -112,9 +132,10 @@ export default function AirportMap({ state, onNodeClick }: Props) {
         {/* ── Layer 5: taxiway / apron edges ────────────────────────────── */}
         {airportGraph.edges.map(edge => {
           if (edge.type === 'runway') return null;
-          // DOM/INTL stand access edges: not drawn as dark lines — stand markings are white
+          // Stand / parking edges: hide when not lit (no dark marking in chart)
           const isStandEdge = edge.fromNodeId.startsWith('DOM_S') || edge.toNodeId.startsWith('DOM_S')
-            || edge.fromNodeId.startsWith('INTL_S') || edge.toNodeId.startsWith('INTL_S');
+            || edge.fromNodeId.startsWith('INTL_S') || edge.toNodeId.startsWith('INTL_S')
+            || edge.fromNodeId.startsWith('P') || edge.toNodeId.startsWith('P');
           if (isStandEdge && (lightStates[edge.id] ?? 'off') === 'off') return null;
           const fromNode = airportGraph.nodes.find(n => n.id === edge.fromNodeId);
           const toNode   = airportGraph.nodes.find(n => n.id === edge.toNodeId);
@@ -124,8 +145,9 @@ export default function AirportMap({ state, onNodeClick }: Props) {
           const style      = EDGE_STYLES[edge.type] ?? EDGE_STYLES.taxiway;
 
           let stroke = style.stroke;
-          if (lightState === 'green') stroke = '#1a6632';
-          else if (lightState === 'red') stroke = '#881010';
+          let strokeWidth = style.width;
+          if (lightState === 'green') { stroke = '#22c55e'; strokeWidth = Math.max(strokeWidth, 4); }
+          else if (lightState === 'red') { stroke = '#ef4444'; strokeWidth = Math.max(strokeWidth, 3); }
 
           return (
             <g key={edge.id}>
@@ -133,8 +155,8 @@ export default function AirportMap({ state, onNodeClick }: Props) {
                 x1={fromNode.x} y1={fromNode.y}
                 x2={toNode.x}   y2={toNode.y}
                 stroke={stroke}
-                strokeWidth={style.width}
-                strokeLinecap="butt"
+                strokeWidth={strokeWidth}
+                strokeLinecap="round"
                 opacity={edge.status === 'closed' ? 0.3 : 1}
               />
               {lightState === 'green' && (
@@ -217,6 +239,24 @@ export default function AirportMap({ state, onNodeClick }: Props) {
 
 
 
+// ── Route plan preview ────────────────────────────────────────────────────────
+
+function RoutePlanLine({ route }: { route: string[] }) {
+  const nodes = route.map(id => airportGraph.nodes.find(n => n.id === id));
+  if (nodes.some(n => !n)) return null;
+  const d = nodes.map((n, i) => `${i === 0 ? 'M' : 'L'}${n!.x},${n!.y}`).join(' ');
+  return (
+    <>
+      {/* dark halo for contrast on any background */}
+      <path d={d} stroke="#0f172a" strokeWidth={9} fill="none" opacity={0.55}
+        strokeLinecap="round" strokeLinejoin="round" />
+      {/* bright blue dashed route line */}
+      <path d={d} stroke="#38bdf8" strokeWidth={4.5} fill="none" opacity={0.9}
+        strokeDasharray="14,8" strokeLinecap="round" strokeLinejoin="round" />
+    </>
+  );
+}
+
 // ── Runway marking components ─────────────────────────────────────────────────
 
 function RunwayEdgeLights(_props: { y: number; xStart?: number; xEnd?: number; animate: boolean }) {
@@ -265,10 +305,10 @@ function ParkedAircraft(_props: { x: number; y: number; heading: number }) {
 
 function AircraftIcon({ x, y, heading }: { x: number; y: number; heading: number }) {
   return (
-    <g transform={`translate(${x},${y}) rotate(${heading})`}>
-      <ellipse cx={0} cy={0} rx={3} ry={12} fill="#f1f5f9" />
-      <polygon points="0,-1 13,6 7,8 0,5 -7,8 -13,6" fill="#e2e8f0" />
-      <polygon points="0,9 4,12 0,11 -4,12" fill="#e2e8f0" />
+    <g transform={`translate(${x},${y}) rotate(${heading})`} filter="url(#glow-aircraft)">
+      <ellipse cx={0} cy={0} rx={3} ry={12} fill="#f59e0b" stroke="#1e293b" strokeWidth={1.2} />
+      <polygon points="0,-1 13,6 7,8 0,5 -7,8 -13,6" fill="#fbbf24" stroke="#1e293b" strokeWidth={1.2} />
+      <polygon points="0,9 4,12 0,11 -4,12" fill="#f59e0b" stroke="#1e293b" strokeWidth={1.2} />
     </g>
   );
 }
@@ -317,11 +357,11 @@ function getAircraftPosition(state: SimulationState) {
   const edgeId = routeEdgeIds[aircraft.routeEdgeIndex];
   if (!edgeId) return null;
 
-  const edge = airportGraph.edges.find(e => e.id === edgeId);
-  if (!edge) return null;
+  if (!airportGraph.edges.find(e => e.id === edgeId)) return null;
 
-  const fromNode = airportGraph.nodes.find(n => n.id === edge.fromNodeId);
-  const toNode   = airportGraph.nodes.find(n => n.id === edge.toNodeId);
+  // Use route node order (not stored edge direction) so bidirectional edges interpolate correctly
+  const fromNode = airportGraph.nodes.find(n => n.id === aircraft.assignedRoute[aircraft.routeEdgeIndex]);
+  const toNode   = airportGraph.nodes.find(n => n.id === aircraft.assignedRoute[aircraft.routeEdgeIndex + 1]);
   if (!fromNode || !toNode) return null;
 
   const t = aircraft.progressOnEdge;
