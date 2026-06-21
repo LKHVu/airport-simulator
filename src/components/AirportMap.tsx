@@ -42,7 +42,9 @@ export default function AirportMap({ state, onNodeClick, showPinkOverlay, pinkOp
   ]);
 
   const isNight = state.config.timeOfDay === 'night';
-  const isFoggy = state.config.weather === 'fog' || state.config.weather === 'thunderstorm';
+  const isFog = state.config.weather === 'fog';
+  const isRain = state.config.weather === 'rain';
+  const isThunderstorm = state.config.weather === 'thunderstorm';
 
   return (
     <div className="relative w-full h-full rounded-xl overflow-hidden border border-[#bbb]"
@@ -50,8 +52,30 @@ export default function AirportMap({ state, onNodeClick, showPinkOverlay, pinkOp
       {isNight && (
         <div className="absolute inset-0 bg-indigo-950/50 pointer-events-none z-10" />
       )}
-      {isFoggy && (
-        <div className="absolute inset-0 bg-gray-400/25 backdrop-blur-sm pointer-events-none z-10" />
+      {isFog && (
+        <>
+          <div
+            className="absolute inset-0 pointer-events-none z-10"
+            style={{
+              background:
+                'radial-gradient(ellipse at center, rgba(220,220,225,0) 35%, rgba(210,212,218,0.4) 100%)',
+            }}
+          />
+          <div className="absolute inset-0 fog-drift pointer-events-none z-10" />
+        </>
+      )}
+      {(isRain || isThunderstorm) && (
+        <div
+          className={`absolute inset-0 pointer-events-none z-10 ${
+            isThunderstorm ? 'rain-fall rain-heavy' : 'rain-fall'
+          }`}
+        />
+      )}
+      {isThunderstorm && (
+        <>
+          <div className="absolute inset-0 bg-slate-800/20 pointer-events-none z-10" />
+          <div className="absolute inset-0 storm-flash pointer-events-none z-10 bg-slate-200" />
+        </>
       )}
 
       <svg
@@ -96,6 +120,50 @@ export default function AirportMap({ state, onNodeClick, showPinkOverlay, pinkOp
             50%       { opacity: 0.3; }
           }
           .rwy-edge-light { animation: rwy-flash 1.2s ease-in-out infinite; }
+          @keyframes storm-flash {
+            0%, 92%, 100% { opacity: 0; }
+            94%           { opacity: 0.35; }
+            96%           { opacity: 0.05; }
+            98%           { opacity: 0.30; }
+          }
+          .storm-flash { animation: storm-flash 6s ease-out infinite; }
+
+          .rain-fall {
+            background-image:
+              repeating-linear-gradient(105deg,
+                rgba(255,255,255,0) 0px,
+                rgba(255,255,255,0) 8px,
+                rgba(190,205,225,0.28) 9px,
+                rgba(190,205,225,0.28) 10px);
+            background-size: 100px 100px;
+            animation: rain-fall 0.55s linear infinite;
+          }
+          .rain-fall.rain-heavy {
+            background-image:
+              repeating-linear-gradient(102deg,
+                rgba(255,255,255,0) 0px,
+                rgba(255,255,255,0) 5px,
+                rgba(200,212,230,0.38) 6px,
+                rgba(200,212,230,0.38) 7px);
+            background-size: 70px 70px;
+            animation-duration: 0.4s;
+          }
+          @keyframes rain-fall {
+            0%   { background-position: 0 0; }
+            100% { background-position: -26px 100px; }
+          }
+
+          .fog-drift {
+            background-image:
+              radial-gradient(ellipse 50% 60% at 20% 40%, rgba(225,227,232,0.30), rgba(225,227,232,0) 70%),
+              radial-gradient(ellipse 60% 50% at 80% 60%, rgba(225,227,232,0.25), rgba(225,227,232,0) 70%);
+            background-size: 200% 200%;
+            animation: fog-drift 22s ease-in-out infinite alternate;
+          }
+          @keyframes fog-drift {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+          }
         `}</style>
 
         {/* ── Layer 1: reference image base — 1309×875 at SVG 1200×860 = perfect 1:1 CMP mapping */}
