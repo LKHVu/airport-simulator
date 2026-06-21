@@ -3,6 +3,7 @@
 
 import type { Aircraft, AirportEdge, SimulationConfig, SimulationState } from '../types';
 import { airportGraph } from '../data/airportGraph';
+import { getAircraftSpec } from '../data/aircraftTypes';
 import { findPath, routeToEdges, estimateTravelTimeSeconds } from './pathfinding';
 
 const KNOTS_TO_MS = 0.5144;
@@ -26,6 +27,17 @@ export function trafficSpeedFactor(config: SimulationConfig): number {
     case 'medium': return 0.75;
     default:       return 1.00;
   }
+}
+
+/**
+ * Effective taxi speed (kts) taking aircraft type, weather and traffic into
+ * account. The selected aircraft type sets both a speed multiplier and a
+ * per-type taxi-speed ceiling, so different types move (and arrive) differently.
+ */
+export function effectiveTaxiSpeedKts(config: SimulationConfig): number {
+  const spec = getAircraftSpec(config.aircraftType);
+  const baseSpeed = Math.min(config.taxiSpeedKts, spec.maxTaxiKts);
+  return baseSpeed * spec.speedFactor * weatherSpeedFactor(config) * trafficSpeedFactor(config);
 }
 
 /** Build the initial set of blocked edge IDs from incident + edge statuses */
@@ -107,9 +119,8 @@ export function simulationTick(
 
   const edges = airportGraph.edges;
 
-  // Effective speed
-  const baseSpeed = Math.min(config.taxiSpeedKts, 30); // cap at 30kts for taxiing
-  const effectiveSpeed = baseSpeed * weatherSpeedFactor(config) * trafficSpeedFactor(config);
+  // Effective speed (depends on aircraft type, weather and traffic)
+  const effectiveSpeed = effectiveTaxiSpeedKts(config);
   const effectiveSpeedMs = effectiveSpeed * KNOTS_TO_MS;
 
   // Current edge
@@ -301,7 +312,7 @@ export function initSimulation(config: SimulationConfig): SimulationState {
     routeEdgeIndex: 0,
   };
 
-  const effectiveSpeed = config.taxiSpeedKts * weatherSpeedFactor(config) * trafficSpeedFactor(config);
+  const effectiveSpeed = effectiveTaxiSpeedKts(config);
   const eta = estimateTravelTimeSeconds(route, airportGraph.edges, effectiveSpeed);
 
   return {

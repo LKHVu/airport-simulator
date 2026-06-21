@@ -1,6 +1,7 @@
 // SVG airport map — aeronautical chart style matching TSN reference.
 
 import { airportGraph, SVG_WIDTH, SVG_HEIGHT } from '../data/airportGraph';
+import { getAircraftSpec } from '../data/aircraftTypes';
 import { routeToEdges } from '../simulation/pathfinding';
 import type { SimulationState } from '../types';
 
@@ -250,7 +251,12 @@ export default function AirportMap({ state, onNodeClick, showPinkOverlay, pinkOp
 
         {/* ── Layer 9: active aircraft ───────────────────────────────────── */}
         {aircraft && aircraftPos && (
-          <AircraftIcon x={aircraftPos.x} y={aircraftPos.y} heading={aircraftPos.heading} />
+          <AircraftIcon
+            x={aircraftPos.x}
+            y={aircraftPos.y}
+            heading={aircraftPos.heading}
+            scale={getAircraftSpec(state.config.aircraftType).sizeScale}
+          />
         )}
 
         {/* ── Layer 10: compass rose + chart border ─────────────────────── */}
@@ -329,9 +335,9 @@ function ParkedAircraft(_props: { x: number; y: number; heading: number }) {
   return null;
 }
 
-function AircraftIcon({ x, y, heading }: { x: number; y: number; heading: number }) {
+function AircraftIcon({ x, y, heading, scale = 1 }: { x: number; y: number; heading: number; scale?: number }) {
   return (
-    <g transform={`translate(${x},${y}) rotate(${heading})`} filter="url(#glow-aircraft)">
+    <g transform={`translate(${x},${y}) rotate(${heading}) scale(${scale})`} filter="url(#glow-aircraft)">
       <ellipse cx={0} cy={0} rx={3} ry={12} fill="#f59e0b" stroke="#1e293b" strokeWidth={1.2} />
       <polygon points="0,-1 13,6 7,8 0,5 -7,8 -13,6" fill="#fbbf24" stroke="#1e293b" strokeWidth={1.2} />
       <polygon points="0,9 4,12 0,11 -4,12" fill="#f59e0b" stroke="#1e293b" strokeWidth={1.2} />

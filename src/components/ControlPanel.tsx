@@ -61,10 +61,10 @@ export default function ControlPanel({
           value={config.aircraftType}
           onChange={v => onConfigChange({ aircraftType: v as SimulationConfig['aircraftType'] })}
           options={[
-            { value: 'A321', label: 'Airbus A321 (Thân hẹp)' },
-            { value: 'B737', label: 'Boeing 737 (Thân hẹp)' },
-            { value: 'A350', label: 'Airbus A350 (Thân rộng)' },
-            { value: 'ATR72', label: 'ATR 72 (Turboprop)' },
+            { value: 'A321', label: 'Airbus A321 (Thân hẹp · lăn chuẩn)' },
+            { value: 'B737', label: 'Boeing 737 (Thân hẹp · nhanh nhẹn)' },
+            { value: 'A350', label: 'Airbus A350 (Thân rộng · lăn chậm, lớn)' },
+            { value: 'ATR72', label: 'ATR 72 (Turboprop · nhỏ, chậm)' },
           ]}
         />
       </Section>

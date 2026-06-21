@@ -3,6 +3,7 @@
 import { Fragment } from 'react';
 import type { SimulationState } from '../types';
 import { airportGraph } from '../data/airportGraph';
+import { getAircraftSpec } from '../data/aircraftTypes';
 import { routeToEdges } from '../simulation/pathfinding';
 
 interface Props {
@@ -78,7 +79,7 @@ export default function StatusPanel({ state }: Props) {
         <>
           <StatusGrid items={[
             { label: 'Mã hiệu',        value: aircraft.callsign },
-            { label: 'Loại tàu bay',   value: config.aircraftType },
+            { label: 'Loại tàu bay',   value: `${config.aircraftType} (${getAircraftSpec(config.aircraftType).category})` },
             { label: 'Trạng thái',     value: <StatusBadge status={aircraft.status} /> },
             { label: 'Tốc độ',         value: `${aircraft.speedKts.toFixed(1)} kts` },
             { label: 'Đoạn đường',     value: currentEdge ? currentEdge.id : '—' },
