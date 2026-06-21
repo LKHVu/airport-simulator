@@ -15,6 +15,11 @@ interface Props {
   isRunning: boolean;
   isPaused: boolean;
   canStart: boolean;
+  blockedCount: number;
+  autoIncidents: boolean;
+  onToggleAutoIncidents: () => void;
+  onTriggerIncident: () => void;
+  onClearIncidents: () => void;
 }
 
 export default function ControlPanel({
@@ -28,6 +33,11 @@ export default function ControlPanel({
   isRunning,
   isPaused,
   canStart,
+  blockedCount,
+  autoIncidents,
+  onToggleAutoIncidents,
+  onTriggerIncident,
+  onClearIncidents,
 }: Props) {
   return (
     <div className="flex flex-col gap-3 p-4 bg-[#111620] rounded-xl border border-[#1e2838] text-sm text-gray-200">
@@ -125,28 +135,35 @@ export default function ControlPanel({
         </div>
       </Section>
 
-      {/* Sự cố */}
-      <Section title="Tình huống sự cố">
-        <LabeledSelect
-          label="Loại sự cố"
-          value={config.incident}
-          onChange={v => onConfigChange({ incident: v as SimulationConfig['incident'] })}
-          options={[
-            { value: 'none',                   label: 'Không có sự cố' },
-            { value: 'blocked_taxiway',         label: 'Đường lăn bị chặn' },
-            { value: 'vehicle_crossing',        label: 'Phương tiện cắt ngang' },
-            { value: 'runway_incursion',        label: 'Nguy cơ xâm phạm đường băng' },
-            { value: 'low_visibility',          label: 'Tầm nhìn hạn chế' },
-            { value: 'aircraft_stopped_ahead',  label: 'Máy bay dừng phía trước' },
-          ]}
-        />
-        {config.incident !== 'none' && (
-          <IncidentEdgePicker
-            incidentEdgeId={config.incidentEdgeId}
-            onChange={v => onConfigChange({ incidentEdgeId: v })}
-          />
-        )}
+      {/* Sự cố động (A-SMGCS / SMAN) */}
+      <Section title="Sự cố trên đường lăn (động)">
+        <p className="text-xs text-gray-500 -mt-1">
+          Tạo sự cố ngay khi máy bay đang lăn — hệ thống sẽ tự chạy lại Dijkstra
+          từ vị trí hiện tại để tìm đường vòng, không khởi động lại.
+        </p>
+
+        <button
+          onClick={onTriggerIncident}
+          disabled={!isRunning}
+          className="w-full bg-orange-700 hover:bg-orange-600 disabled:bg-gray-800 disabled:text-gray-600 text-white text-xs font-semibold px-3 py-2 rounded-lg transition"
+        >
+          ⚠ Tạo sự cố trên tuyến phía trước
+        </button>
+
         <div className="flex items-center gap-2 mt-1">
+          <input
+            id="autoincidents"
+            type="checkbox"
+            checked={autoIncidents}
+            onChange={onToggleAutoIncidents}
+            className="accent-orange-500"
+          />
+          <label htmlFor="autoincidents" className="text-gray-300 cursor-pointer">
+            Sự cố tự động (mỗi 4 giây khi đang lăn)
+          </label>
+        </div>
+
+        <div className="flex items-center gap-2">
           <input
             id="autoreroute"
             type="checkbox"
@@ -155,8 +172,21 @@ export default function ControlPanel({
             className="accent-green-500"
           />
           <label htmlFor="autoreroute" className="text-gray-300 cursor-pointer">
-            Tự động tìm đường vòng khi bị chặn
+            Tự động tìm đường vòng (Dijkstra) khi bị chặn
           </label>
+        </div>
+
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-xs text-gray-500">
+            Đoạn bị chặn: <span className="text-red-400 font-mono">{blockedCount}</span>
+          </span>
+          <button
+            onClick={onClearIncidents}
+            disabled={blockedCount === 0}
+            className="text-xs text-gray-300 underline disabled:text-gray-700 disabled:no-underline"
+          >
+            Xóa sự cố
+          </button>
         </div>
       </Section>
 
@@ -249,33 +279,3 @@ function LabeledSelect({
   );
 }
 
-function IncidentEdgePicker({
-  incidentEdgeId,
-  onChange,
-}: {
-  incidentEdgeId: string | null;
-  onChange: (v: string | null) => void;
-}) {
-  const pickableEdges = [
-    { value: 'TWY_N_B1C1', label: 'Đường lăn B1-C1 (Trung tâm phía bắc)' },
-    { value: 'TWY_M_A3B3', label: 'Đường lăn A3-B3 (Giữa phía tây)' },
-    { value: 'TWY_M_B3C3', label: 'Đường lăn B3-C3 (Trung tâm giữa)' },
-    { value: 'TWY_M_C3D3', label: 'Đường lăn C3-D3 (Giữa phía đông)' },
-    { value: 'TWY_S_B2C2', label: 'Đường lăn B2-C2 (Trung tâm phía nam)' },
-    { value: 'TWY_A_13',   label: 'Đường lăn A1-A3 (Tây bắc)' },
-    { value: 'TWY_B_13',   label: 'Đường lăn B1-B3 (Trung tây bắc)' },
-    { value: 'TWY_C_13',   label: 'Đường lăn C1-C3 (Trung đông bắc)' },
-  ];
-
-  return (
-    <LabeledSelect
-      label="Đoạn đường bị ảnh hưởng"
-      value={incidentEdgeId ?? ''}
-      onChange={v => onChange(v || null)}
-      options={[
-        { value: '', label: 'Chọn đoạn đường…' },
-        ...pickableEdges,
-      ]}
-    />
-  );
-}

@@ -7,7 +7,14 @@ import ControlPanel from './components/ControlPanel';
 import StatusPanel from './components/StatusPanel';
 import ScenarioPanel from './components/ScenarioPanel';
 import HuongDanModal from './components/HuongDanModal';
-import { initSimulation, simulationTick, acceptRoute } from './simulation/simulator';
+import {
+  initSimulation,
+  simulationTick,
+  acceptRoute,
+  setIncidentEdge,
+  clearIncidents,
+  randomIncidentEdge,
+} from './simulation/simulator';
 import type { SimulationConfig, SimulationState } from './types';
 
 const DEFAULT_CONFIG: SimulationConfig = {
@@ -33,6 +40,7 @@ export default function App() {
   const [showGuide, setShowGuide] = useState(false);
   const [showPinkOverlay, setShowPinkOverlay] = useState(false);
   const [pinkOpacity, setPinkOpacity] = useState(0.45);
+  const [autoIncidents, setAutoIncidents] = useState(false);
   const rafRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
 
@@ -106,6 +114,38 @@ export default function App() {
   const handleAcceptRoute = useCallback(() => {
     setSimState(prev => acceptRoute(prev));
   }, []);
+
+  // Inject a live incident: block a random edge ahead on the current route.
+  // The simulation tick then re-routes (Dijkstra) from the aircraft's position.
+  const handleTriggerIncident = useCallback(() => {
+    setSimState(prev => {
+      const edgeId = randomIncidentEdge(prev);
+      if (!edgeId) return prev;
+      return setIncidentEdge(prev, edgeId, true);
+    });
+    setConfig(prev => (prev.incident === 'none' ? { ...prev, incident: 'blocked_taxiway' } : prev));
+  }, []);
+
+  const handleClearIncidents = useCallback(() => {
+    setSimState(prev => clearIncidents(prev));
+    setConfig(prev => ({ ...prev, incident: 'none', incidentEdgeId: null }));
+  }, []);
+
+  // Auto-incident mode: every few seconds, while taxiing, throw a new incident
+  // on the road ahead so the live re-routing runs continuously.
+  useEffect(() => {
+    if (!autoIncidents || !simState.isRunning || simState.isPaused) return;
+    const interval = setInterval(() => {
+      setSimState(prev => {
+        if (!prev.isRunning || prev.isPaused || !prev.aircraft) return prev;
+        if (prev.aircraft.status !== 'taxiing') return prev;
+        const edgeId = randomIncidentEdge(prev);
+        if (!edgeId) return prev;
+        return setIncidentEdge(prev, edgeId, true);
+      });
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [autoIncidents, simState.isRunning, simState.isPaused]);
 
   const handleReset = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -181,6 +221,11 @@ export default function App() {
             isRunning={simState.isRunning}
             isPaused={simState.isPaused}
             canStart={!!simState.aircraft}
+            blockedCount={simState.blockedEdgeIds.size}
+            autoIncidents={autoIncidents}
+            onToggleAutoIncidents={() => setAutoIncidents(v => !v)}
+            onTriggerIncident={handleTriggerIncident}
+            onClearIncidents={handleClearIncidents}
           />
           <StatusPanel state={simState} />
           <ScenarioPanel state={simState} />

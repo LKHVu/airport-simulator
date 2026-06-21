@@ -133,45 +133,79 @@ export function simulationTick(
 
   const currentEdgeId = routeEdgeIds[aircraft.routeEdgeIndex];
 
-  // Check if current edge is now blocked (incident happened)
-  if (state.blockedEdgeIds.has(currentEdgeId)) {
-    if (config.autoReroute) {
-      // Reroute from current position
-      const currentNodeId = aircraft.assignedRoute[aircraft.routeEdgeIndex];
-      const destinationId = aircraft.targetNodeId;
-      const newRoute = findPath(airportGraph, currentNodeId, destinationId, state.blockedEdgeIds);
+  // ── Dynamic (A-SMGCS / SMAN-style) handling ─────────────────────────────────
+  // Each tick, re-evaluate the *remaining* route against live incidents. If any
+  // edge ahead is blocked, re-run Dijkstra from the current position (without
+  // resetting the aircraft to the start) — this is the live re-routing layer.
+  const remainingEdgeIds = routeEdgeIds.slice(aircraft.routeEdgeIndex);
+  const currentBlocked = state.blockedEdgeIds.has(currentEdgeId);
+  const blockAhead = remainingEdgeIds.some(id => state.blockedEdgeIds.has(id));
 
-      if (newRoute) {
-        const rerouted: Aircraft = {
-          ...aircraft,
-          assignedRoute: newRoute,
-          routeEdgeIndex: 0,
-          progressOnEdge: 0,
-          currentNodeId,
-          currentEdgeId: null,
-          status: 'taxiing',
-        };
-        const eta = estimateTravelTimeSeconds(newRoute, edges, effectiveSpeed);
+  if (blockAhead) {
+    const destinationId = aircraft.targetNodeId;
+
+    if (config.autoReroute) {
+      const fromNode = aircraft.assignedRoute[aircraft.routeEdgeIndex];          // start of current edge
+      let rerouted: Aircraft | null = null;
+
+      if (currentBlocked) {
+        // The edge the aircraft is on is blocked → re-plan from this node.
+        const path = findPath(airportGraph, fromNode, destinationId, state.blockedEdgeIds);
+        if (path && path.length > 1) {
+          rerouted = {
+            ...aircraft,
+            assignedRoute: path,
+            routeEdgeIndex: 0,
+            progressOnEdge: 0,
+            currentNodeId: fromNode,
+            currentEdgeId: null,
+            status: 'taxiing',
+          };
+        }
+      } else {
+        // Current edge is clear; a block is further ahead → keep finishing the
+        // current edge, then follow a fresh route from the next node.
+        const nextNode = aircraft.assignedRoute[aircraft.routeEdgeIndex + 1];
+        const path = findPath(airportGraph, nextNode, destinationId, state.blockedEdgeIds);
+        if (path && path.length > 1) {
+          rerouted = {
+            ...aircraft,
+            assignedRoute: [fromNode, ...path],   // keep current edge as edge 0
+            routeEdgeIndex: 0,
+            progressOnEdge: aircraft.progressOnEdge,
+            currentNodeId: fromNode,
+            status: 'taxiing',
+          };
+        }
+      }
+
+      if (rerouted) {
+        const eta = estimateTravelTimeSeconds(
+          rerouted.assignedRoute.slice(rerouted.routeEdgeIndex), edges, effectiveSpeed,
+        );
         return {
           ...state,
           aircraft: rerouted,
           elapsedSeconds: state.elapsedSeconds + dt,
           etaSeconds: eta,
-          warningMessage: 'Tuyến đường bị chặn — đã tìm đường vòng tự động.',
+          warningMessage: 'Sự cố trên đường lăn — đã tự động tính lại lộ trình (Dijkstra).',
           lightStates: computeLightStates(rerouted, state.blockedEdgeIds),
         };
-      } else {
-        const stopped: Aircraft = { ...aircraft, status: 'stopped', speedKts: 0 };
-        return {
-          ...state,
-          aircraft: stopped,
-          isRunning: false,
-          warningMessage: 'Không tìm được đường. Máy bay dừng lại.',
-          lightStates: computeLightStates(stopped, state.blockedEdgeIds),
-        };
       }
-    } else {
-      // Hold — can't proceed
+
+      // No alternative path exists → stop.
+      const stopped: Aircraft = { ...aircraft, status: 'stopped', speedKts: 0 };
+      return {
+        ...state,
+        aircraft: stopped,
+        isRunning: false,
+        warningMessage: 'Không tìm được đường vòng. Máy bay dừng lại.',
+        lightStates: computeLightStates(stopped, state.blockedEdgeIds),
+      };
+    }
+
+    if (currentBlocked) {
+      // Auto-reroute off and the edge underfoot is blocked → hold position.
       const holding: Aircraft = { ...aircraft, status: 'holding', speedKts: 0 };
       return {
         ...state,
@@ -181,6 +215,7 @@ export function simulationTick(
         lightStates: computeLightStates(holding, state.blockedEdgeIds),
       };
     }
+    // Auto-reroute off but the block is only ahead → keep taxiing toward it.
   }
 
   // Advance along edge
@@ -291,4 +326,68 @@ export function acceptRoute(state: SimulationState): SimulationState {
     routeStatus: 'accepted',
     lightStates: computeLightStates(state.aircraft, state.blockedEdgeIds),
   };
+}
+
+// ── Live incident layer (dynamic, applied mid-taxi without resetting) ──────────
+
+/** Block or unblock a taxiway edge live. The next tick re-routes if needed. */
+export function setIncidentEdge(
+  state: SimulationState,
+  edgeId: string,
+  blocked: boolean,
+): SimulationState {
+  const next = new Set(state.blockedEdgeIds);
+  if (blocked) next.add(edgeId);
+  else next.delete(edgeId);
+  return {
+    ...state,
+    blockedEdgeIds: next,
+    warningMessage: blocked
+      ? 'Sự cố mới trên đường lăn — đang tính lại lộ trình…'
+      : state.warningMessage,
+    lightStates: state.aircraft
+      ? computeLightStates(state.aircraft, next)
+      : state.lightStates,
+  };
+}
+
+/** Clear all live incidents (keeps statically closed/restricted edges). */
+export function clearIncidents(state: SimulationState): SimulationState {
+  const next = new Set<string>();
+  for (const e of airportGraph.edges) {
+    if (e.status === 'closed' || e.status === 'restricted') next.add(e.id);
+  }
+  return {
+    ...state,
+    blockedEdgeIds: next,
+    warningMessage: null,
+    lightStates: state.aircraft ? computeLightStates(state.aircraft, next) : {},
+  };
+}
+
+/**
+ * Pick a random edge strictly AHEAD of the aircraft on its current route
+ * (not the edge underfoot, not already blocked) — a candidate for a live
+ * incident the aircraft can still re-route around.
+ */
+export function randomIncidentEdge(state: SimulationState): string | null {
+  const ac = state.aircraft;
+  if (!ac) return null;
+  const routeEdgeIds = routeToEdges(ac.assignedRoute, airportGraph.edges) ?? [];
+  const ahead = routeEdgeIds
+    .slice(ac.routeEdgeIndex + 1)
+    .filter(id => !state.blockedEdgeIds.has(id));
+  if (!ahead.length) return null;
+
+  // Prefer an edge that still leaves a valid detour (so the aircraft re-routes
+  // rather than dead-ends). Fall back to any edge ahead if none has an alternative.
+  const fromNode = ac.assignedRoute[ac.routeEdgeIndex + 1];
+  const reroutable = ahead.filter(id => {
+    const test = new Set(state.blockedEdgeIds);
+    test.add(id);
+    const p = findPath(airportGraph, fromNode, ac.targetNodeId, test);
+    return p !== null && p.length > 1;
+  });
+  const pool = reroutable.length ? reroutable : ahead;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
