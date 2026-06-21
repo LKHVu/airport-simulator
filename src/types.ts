@@ -9,7 +9,8 @@ export type NodeType =
   | 'holding_point'
   | 'runway_entry'
   | 'runway_exit'
-  | 'apron';
+  | 'apron'
+  | 'hotspot';
 
 export type EdgeType = 'taxiway' | 'runway' | 'apron' | 'holding';
 

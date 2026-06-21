@@ -127,6 +127,26 @@ export const airportGraph: AirportGraph = {
     { id: 'INTL_S2',  label: 'I2', type: 'stand', x: 724, y: 350, description: 'International stand I2' },
     { id: 'INTL_S3',  label: 'I3', type: 'stand', x: 724, y: 360, description: 'International stand I3' },
     { id: 'INTL_S4',  label: 'I4', type: 'stand', x: 724, y: 374, description: 'International stand I4' },
+
+    // ── HS hot-spots (the points aircraft can travel to/from) ────────────────
+    // West (07R / W7 area)
+    { id: 'HS15', label: 'HS15', type: 'hotspot', x: 110,  y: 258, description: 'Hot spot HS15 (07R / W11 west)' },
+    { id: 'HS16', label: 'HS16', type: 'hotspot', x: 268,  y: 215, description: 'Hot spot HS16 (RWY 07R x TWY W7)' },
+    // DOM apron
+    { id: 'HS4',  label: 'HS4',  type: 'hotspot', x: 700,  y: 365, description: 'Hot spot HS4 (apron entry)' },
+    { id: 'HS5',  label: 'HS5',  type: 'hotspot', x: 700,  y: 455, description: 'Hot spot HS5 (DOM apron)' },
+    { id: 'HS3',  label: 'HS3',  type: 'hotspot', x: 655,  y: 562, description: 'Hot spot HS3 (M1 apron)' },
+    // East interchange (E2/E4/E8/NS2 maze, between the runways)
+    { id: 'HS7',  label: 'HS7',  type: 'hotspot', x: 917,  y: 200, description: 'Hot spot HS7' },
+    { id: 'HS11', label: 'HS11', type: 'hotspot', x: 809,  y: 297, description: 'Hot spot HS11' },
+    { id: 'HS17', label: 'HS17', type: 'hotspot', x: 845,  y: 320, description: 'Hot spot HS17' },
+    { id: 'HS12', label: 'HS12', type: 'hotspot', x: 949,  y: 283, description: 'Hot spot HS12' },
+    { id: 'HS6',  label: 'HS6',  type: 'hotspot', x: 916,  y: 392, description: 'Hot spot HS6' },
+    { id: 'HS13', label: 'HS13', type: 'hotspot', x: 1062, y: 273, description: 'Hot spot HS13' },
+    { id: 'HS9',  label: 'HS9',  type: 'hotspot', x: 1061, y: 314, description: 'Hot spot HS9' },
+    { id: 'HS10', label: 'HS10', type: 'hotspot', x: 1145, y: 316, description: 'Hot spot HS10' },
+    { id: 'HS8',  label: 'HS8',  type: 'hotspot', x: 1154, y: 383, description: 'Hot spot HS8' },
+    { id: 'HS14', label: 'HS14', type: 'hotspot', x: 1185, y: 325, description: 'Hot spot HS14' },
   ],
 
   edges: [
@@ -255,6 +275,30 @@ export const airportGraph: AirportGraph = {
     { id: 'P3_CONN', fromNodeId: 'P3', toNodeId: 'M1_P3',  lengthMeters: 61, maxSpeedKts: 5, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
     { id: 'P4_CONN', fromNodeId: 'P4', toNodeId: 'M1_2',   lengthMeters: 71, maxSpeedKts: 5, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
     { id: 'P5_CONN', fromNodeId: 'P5', toNodeId: 'M1_3',   lengthMeters: 76, maxSpeedKts: 5, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
+
+    // ── HS hot-spot connectors (wire the hot-spots into the taxiway network) ──
+    // West
+    { id: 'HS16_R2W7', fromNodeId: 'HS16', toNodeId: 'R2_W7', lengthMeters: 19,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS16_H07R', fromNodeId: 'HS16', toNodeId: 'H07R', lengthMeters: 77,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS15_W6A',  fromNodeId: 'HS15', toNodeId: 'W6_A', lengthMeters: 90,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    // DOM apron (on / beside the M1 spine)
+    { id: 'HS4_M1P3',  fromNodeId: 'HS4',  toNodeId: 'M1_P3', lengthMeters: 53, maxSpeedKts: 10, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS5_M1P1',  fromNodeId: 'HS5',  toNodeId: 'M1_P1', lengthMeters: 66, maxSpeedKts: 10, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS3_M1S',   fromNodeId: 'HS3',  toNodeId: 'M1_S',  lengthMeters: 21, maxSpeedKts: 10, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    // East interchange (E8 horizontal spine + E4/E2 verticals + links to W11 / south runway)
+    { id: 'E4_HS9',    fromNodeId: 'W11_EE', toNodeId: 'HS9',  lengthMeters: 41,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS9_HS13',  fromNodeId: 'HS9',  toNodeId: 'HS13',  lengthMeters: 41,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS13_R2E4', fromNodeId: 'HS13', toNodeId: 'R2_E4', lengthMeters: 52,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS9_HS10',  fromNodeId: 'HS9',  toNodeId: 'HS10',  lengthMeters: 84,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS10_HS14', fromNodeId: 'HS10', toNodeId: 'HS14',  lengthMeters: 41,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS10_HS8',  fromNodeId: 'HS10', toNodeId: 'HS8',   lengthMeters: 67,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS9_HS12',  fromNodeId: 'HS9',  toNodeId: 'HS12',  lengthMeters: 116, maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS12_HS11', fromNodeId: 'HS12', toNodeId: 'HS11',  lengthMeters: 141, maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS12_HS7',  fromNodeId: 'HS12', toNodeId: 'HS7',   lengthMeters: 89,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS11_HS17', fromNodeId: 'HS11', toNodeId: 'HS17',  lengthMeters: 43,  maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS17_W11EE',fromNodeId: 'HS17', toNodeId: 'W11_E_END', lengthMeters: 60, maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS6_W11EN', fromNodeId: 'HS6',  toNodeId: 'W11_E_END', lengthMeters: 52, maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    { id: 'HS6_HS17',  fromNodeId: 'HS6',  toNodeId: 'HS17',  lengthMeters: 101, maxSpeedKts: 15, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
   ],
 };
 
@@ -268,10 +312,12 @@ export function getAdjacentEdges(nodeId: string, edges: typeof airportGraph.edge
   );
 }
 
+// Aircraft can only travel to/from the HS hot-spots and the four runway ends
+// (thresholds). Hot-spots are the nodes; the taxiway edges are the allowed paths.
+const RUNWAY_END_IDS = ['RWY07L_THR', 'RWY25R_THR', 'RWY07R_THR', 'RWY25L_THR'];
+
 export const START_NODES = airportGraph.nodes.filter(n =>
-  ['stand', 'gate', 'holding_point', 'runway_entry'].includes(n.type)
+  n.type === 'hotspot' || RUNWAY_END_IDS.includes(n.id)
 );
 
-export const DESTINATION_NODES = airportGraph.nodes.filter(n =>
-  ['holding_point', 'runway_entry', 'stand', 'gate'].includes(n.type)
-);
+export const DESTINATION_NODES = START_NODES;

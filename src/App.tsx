@@ -11,8 +11,8 @@ import { initSimulation, simulationTick, acceptRoute } from './simulation/simula
 import type { SimulationConfig, SimulationState } from './types';
 
 const DEFAULT_CONFIG: SimulationConfig = {
-  startNodeId:       'DOM_S1',
-  destinationNodeId: 'H07L',
+  startNodeId:       'HS3',
+  destinationNodeId: 'RWY07L_THR',
   callsign:          'VN001',
   aircraftType:      'A321',
   weather:           'clear',

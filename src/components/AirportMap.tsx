@@ -202,6 +202,32 @@ export default function AirportMap({ state, onNodeClick, showPinkOverlay, pinkOp
           // INTL stands are in the infield zone (y<265) — suppress circles to avoid wrong color pixels
           if (node.type === 'stand' && node.y < 265 && !isStart && !isDest) return null;
 
+          // Hot-spots: the only travel-to/from points — draw them as labelled markers.
+          if (node.type === 'hotspot') {
+            const active = isStart || isDest;
+            return (
+              <g
+                key={node.id}
+                onClick={() => onNodeClick?.(node.id)}
+                style={{ cursor: onNodeClick ? 'pointer' : 'default' }}
+              >
+                <circle
+                  cx={node.x} cy={node.y} r={5}
+                  fill={active ? '#f59e0b' : '#9ca3af'}
+                  stroke="#1f2937" strokeWidth={1} opacity={0.95}
+                />
+                <text
+                  x={node.x} y={node.y - 7}
+                  textAnchor="middle" fontSize={7} fontWeight={700}
+                  fill="#111827" stroke="#ffffff" strokeWidth={0.4}
+                  paintOrder="stroke"
+                >
+                  {node.label}
+                </text>
+              </g>
+            );
+          }
+
           return (
             <g
               key={node.id}
