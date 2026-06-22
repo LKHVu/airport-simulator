@@ -49,19 +49,11 @@ export const airportGraph: AirportGraph = {
     { id: 'W11_E4',   label: '',    type: 'intersection', x: 724, y: 343, description: 'W11 at E4' },
     { id: 'W11_E_END',label: '',    type: 'intersection', x: 900, y: 343, description: 'W11 east end (near 25R/25L)' },
 
-    // ── W9 (far-west vertical, x≈55) ─────────────────────────────────────────
-    { id: 'W9_MID', label: 'W9', type: 'intersection', x: 55, y: 354, description: 'TWY W9 mid' },
-    { id: 'W9_S',   label: '',   type: 'intersection', x: 55, y: 364, description: 'TWY W9 south' },
-
     // ── W11 west loop + W6 curve up to RWY 07L (leftmost black taxiway) ───────
     { id: 'W11_LOOP', label: '', type: 'intersection', x: 24, y: 340, description: 'W11 west end / base of leftmost vertical (loop)' },
     { id: 'W6_A',     label: '', type: 'intersection', x: 20, y: 255, description: 'Leftmost vertical taxiway (W6 lower)' },
     { id: 'W6_B',     label: '', type: 'intersection', x: 24, y: 185, description: 'W6 curve start (above 07R)' },
     { id: 'W6_C',     label: 'W6', type: 'intersection', x: 45, y: 140, description: 'W6 curve toward 07L threshold' },
-
-    // ── W7 (x=280) ──────────────────────────────────────────────────────────
-    { id: 'W7_N', label: 'W7', type: 'intersection', x: 280, y: 351, description: 'TWY W7 north junction (apron-top)' },
-    { id: 'W7_S', label: '',   type: 'intersection', x: 280, y: 362, description: 'TWY W7 south junction (apron-top)' },
 
     // ── W7 curve: south runway 07R exit → W11 (joins W11 at x≈390) ───────────
     { id: 'W7J',  label: '', type: 'intersection', x: 390, y: 343, description: 'W7 curve junction with W11' },
@@ -75,15 +67,7 @@ export const airportGraph: AirportGraph = {
     { id: 'W3J',  label: '', type: 'intersection', x: 685, y: 343, description: 'W3 curve junction with W11' },
     { id: 'W3_C', label: 'W3', type: 'intersection', x: 640, y: 290, description: 'W3 curve sweep point' },
 
-    // ── W4 (x=371) ───────────────────────────────────────────────────────────
-    { id: 'W4_N', label: 'W4', type: 'intersection', x: 371, y: 351, description: 'TWY W4 north junction' },
-    { id: 'W4_S', label: '',   type: 'intersection', x: 371, y: 362, description: 'TWY W4 south junction' },
-
-    // ── W1 / APN taxiway (x=498) ─────────────────────────────────────────────
-    { id: 'W1_N', label: 'W1', type: 'intersection', x: 498, y: 351, description: 'TWY W1 north junction' },
-    { id: 'W1_S', label: '',   type: 'intersection', x: 498, y: 362, description: 'TWY W1 south junction' },
-
-    // ── NS north-south connector (x=605) ─────────────────────────────────────
+    // ── NS north-south connector (x=605) — single feeder down into the apron ──
     { id: 'NS_N', label: 'NS', type: 'intersection', x: 605, y: 351, description: 'TWY NS north junction' },
     { id: 'NS_S', label: '',   type: 'intersection', x: 605, y: 362, description: 'TWY NS south junction' },
 
@@ -208,23 +192,7 @@ export const airportGraph: AirportGraph = {
     { id: 'E25R_TX',  fromNodeId: 'W11_EE',  toNodeId: 'E25R_C', lengthMeters: 153, maxSpeedKts: 20, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
     { id: 'E25R_H',   fromNodeId: 'E25R_C',  toNodeId: 'H25R',   lengthMeters: 102, maxSpeedKts: 20, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
 
-    // ── W9 (far-west vertical, x=80) ─────────────────────────────────────────
-    { id: 'W9_N', fromNodeId: 'W11_W',  toNodeId: 'W9_MID', lengthMeters: 10, maxSpeedKts: 20, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'W9_S', fromNodeId: 'W9_MID', toNodeId: 'W9_S',   lengthMeters: 10, maxSpeedKts: 20, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-
-    // ── W7 column (x=280) ────────────────────────────────────────────────────
-    { id: 'W7_N_SEG', fromNodeId: 'W11_W7', toNodeId: 'W7_N', lengthMeters:  10, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'W7_MID',   fromNodeId: 'W7_N',   toNodeId: 'W7_S', lengthMeters: 11, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-
-    // ── W4 column (x=371) ────────────────────────────────────────────────────
-    { id: 'W4_N_SEG', fromNodeId: 'W11_W4', toNodeId: 'W4_N', lengthMeters:  10, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'W4_VERT',  fromNodeId: 'W4_N',   toNodeId: 'W4_S', lengthMeters: 11, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-
-    // ── W1 column (x=498) ────────────────────────────────────────────────────
-    { id: 'W1_N_SEG', fromNodeId: 'W11_W1', toNodeId: 'W1_N', lengthMeters:  10, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'W1_VERT',  fromNodeId: 'W1_N',   toNodeId: 'W1_S', lengthMeters: 11, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-
-    // ── NS column (x=605) ────────────────────────────────────────────────────
+    // ── NS column (x=605) — the single feeder down from W11 into the apron ───
     { id: 'NS_N_SEG', fromNodeId: 'W11_NS', toNodeId: 'NS_N', lengthMeters:  10, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
     { id: 'NS_VERT',  fromNodeId: 'NS_N',   toNodeId: 'NS_S', lengthMeters: 11, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
     { id: 'NS_S_M1',  fromNodeId: 'NS_S',   toNodeId: 'M1_P3', lengthMeters: 64, maxSpeedKts: 20, type: 'apron',   bidirectional: true, status: 'open', trafficLevel: 'low' },
@@ -235,11 +203,9 @@ export const airportGraph: AirportGraph = {
     { id: 'E4_INTL',    fromNodeId: 'E4_N',    toNodeId: 'INTL_APN', lengthMeters:  19, maxSpeedKts: 15, type: 'apron',   bidirectional: true, status: 'open', trafficLevel: 'low' },
     { id: 'INTL_E4_S',  fromNodeId: 'INTL_APN', toNodeId: 'E4_S',   lengthMeters: 10, maxSpeedKts: 15, type: 'apron',   bidirectional: true, status: 'open', trafficLevel: 'low' },
 
-    // ── Upper lateral connector (links W7_N–NS_N, PARL TWY W1) ───────────────
-    { id: 'LAT_N_W7W4', fromNodeId: 'W7_N', toNodeId: 'W4_N', lengthMeters: 91, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'LAT_N_W4W1', fromNodeId: 'W4_N', toNodeId: 'W1_N', lengthMeters: 127, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'LAT_N_W1NS', fromNodeId: 'W1_N', toNodeId: 'NS_N', lengthMeters: 107, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'LAT_N_NSE4', fromNodeId: 'NS_N', toNodeId: 'E4_N', lengthMeters: 119, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
+    // (Removed the upper/lower "lateral" rungs LAT_N / LAT_S — PARL TWY W11 is a
+    //  single taxiway; the lines below it on the chart are the APN TWY W15
+    //  parking apron, not parallel through-taxiways.)
 
     // ── M1 apron taxiway spine ────────────────────────────────────────────────
     { id: 'M1_N_P2', fromNodeId: 'M1_N',   toNodeId: 'M1_P2',  lengthMeters:  17, maxSpeedKts: 10, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
@@ -248,13 +214,6 @@ export const airportGraph: AirportGraph = {
     { id: 'M1_12',  fromNodeId: 'M1_1',   toNodeId: 'M1_2',   lengthMeters:  39, maxSpeedKts: 10, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
     { id: 'M1_23',  fromNodeId: 'M1_2',   toNodeId: 'M1_3',   lengthMeters:  45, maxSpeedKts: 10, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
     { id: 'M1_3S',  fromNodeId: 'M1_3',   toNodeId: 'M1_S',   lengthMeters: 64, maxSpeedKts: 10, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
-
-    // ── Lower lateral (links W9_S–E4_S) ─────────────────────────────────────
-    { id: 'LAT_S_W9W7', fromNodeId: 'W9_S', toNodeId: 'W7_S', lengthMeters: 225, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'LAT_S_W7W4', fromNodeId: 'W7_S', toNodeId: 'W4_S', lengthMeters: 91, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'LAT_S_W4W1', fromNodeId: 'W4_S', toNodeId: 'W1_S', lengthMeters: 127, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'LAT_S_W1NS', fromNodeId: 'W1_S', toNodeId: 'NS_S', lengthMeters: 107, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
-    { id: 'LAT_S_NSE4', fromNodeId: 'NS_S', toNodeId: 'E4_S', lengthMeters: 119, maxSpeedKts: 25, type: 'taxiway', bidirectional: true, status: 'open', trafficLevel: 'low' },
 
     // ── DOM PAX Terminal stand connections (to M1 spine) ──────────────────────
     { id: 'DOM_S5_CONN', fromNodeId: 'DOM_S5', toNodeId: 'M1_N',   lengthMeters: 79, maxSpeedKts: 5, type: 'apron', bidirectional: true, status: 'open', trafficLevel: 'low' },
